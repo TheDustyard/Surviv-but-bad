@@ -1,7 +1,7 @@
-import Camera from "./Camera";
 import Canvas from "./Canvas";
+import Camera from "./views/Camera";
 
-export abstract class Game {
+abstract class Game {
 
     protected canvas: Canvas;
     protected camera: Camera;
@@ -9,7 +9,7 @@ export abstract class Game {
     constructor() {
         this.canvas = new Canvas(document.getElementById("game") as HTMLCanvasElement);
 
-        // window.requestAnimationFrame()
+        window.requestAnimationFrame(this.loop);
     }
 
     private lastDraw: number;
@@ -21,18 +21,15 @@ export abstract class Game {
         if (this.lastDraw === undefined) {
             this.lastDraw = Date.now();
         }
-
-        // TODO: Only draw if in camera view
         this.draw(Date.now() - this.lastDraw);
 
         // UPDATE
         if (this.lastUpdate === undefined) {
             this.lastUpdate = Date.now();
         }
-
-        // TODO: allways update, mabye add a unload distance
         this.update(Date.now() - this.lastUpdate);
 
+        window.requestAnimationFrame(this.loop);
     }
 
     /** Draw the scene */
@@ -40,3 +37,5 @@ export abstract class Game {
     /** Update the scene */
     public abstract update(deltat: number): void;
 }
+
+export default Game;
