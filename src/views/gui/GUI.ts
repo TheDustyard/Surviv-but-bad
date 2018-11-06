@@ -1,4 +1,4 @@
-import Canvas from "../../Canvas";
+import Canvas from "../Canvas";
 
 export default class GUI {
     public elements: Element;

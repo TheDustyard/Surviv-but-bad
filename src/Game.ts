@@ -1,5 +1,5 @@
-import Canvas from "./Canvas";
 import Camera from "./views/Camera";
+import Canvas from "./views/Canvas";
 
 abstract class Game {
 
@@ -7,7 +7,7 @@ abstract class Game {
     protected camera: Camera;
 
     constructor() {
-        this.canvas = new Canvas(document.getElementById("game") as HTMLCanvasElement);
+        this.canvas = new Canvas(document.getElementById("game") as HTMLCanvasElement, this.camera);
 
         window.requestAnimationFrame(this.loop);
     }
@@ -16,7 +16,10 @@ abstract class Game {
     private lastUpdate: number;
 
     // The game loop
-    private loop = () => {
+    private readonly loop = () => {
+        // CLEAR
+        this.canvas.clearRect();
+
         // DRAW
         if (this.lastDraw === undefined) {
             this.lastDraw = Date.now();

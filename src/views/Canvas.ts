@@ -1,7 +1,8 @@
-import Circle from "./shape/Circle";
-import Rectangle from "./shape/Rectangle";
-import Shape from "./shape/Shape";
-import Vector2 from "./Vector2";
+import Circle from "../shape/Circle";
+import Rectangle from "../shape/Rectangle";
+import Shape from "../shape/Shape";
+import Vector2 from "../Vector2";
+import Camera from "./Camera";
 
 interface IStyles {
     line?: ILineStyles;
@@ -12,17 +13,17 @@ interface IStyles {
 
 interface ILineStyles {
     /** Width of lines. Default `1.0` */
-    lineWidth: number;
+    lineWidth?: number;
     /** Type of endings on the end of lines. Possible values: `butt` (default), `round`, `square`. */
-    lineCap: "butt" | "round" | "square";
+    lineCap?: "butt" | "round" | "square";
     /** Defines the type of corners where two lines meet. Possible values: `round`, `bevel`, `miter` (default). */
-    lineJoin: "round" | "bevel" | "miter";
+    lineJoin?: "round" | "bevel" | "miter";
     /** Miter limit ratio. Default `10`. */
-    miterLimit: number;
+    miterLimit?: number;
     /** The current line dash pattern. */
-    lineDash: number[];
+    lineDash?: number[];
     /** Specifies where to start a dash array on a line. */
-    lineDashOffset: number;
+    lineDashOffset?: number;
 }
 
 interface ITextStyles {
@@ -45,10 +46,16 @@ type IStrokeStyles = string;
 export default class Canvas {
     private readonly canvas: HTMLCanvasElement;
     private readonly context: CanvasRenderingContext2D;
+    private readonly camera: Camera;
 
-    public styles: IStyles = {};
+    public styles: IStyles = {
+        fill: "",
+        line: {},
+        stroke: "",
+        text: {}
+    };
 
-    constructor(canvas: HTMLCanvasElement) {
+    constructor(canvas: HTMLCanvasElement, camera: Camera) {
         this.canvas = canvas;
         this.context = canvas.getContext("2d");
 
@@ -100,11 +107,21 @@ export default class Canvas {
         return output;
     }
 
+    /** Sets all pixels in the rectangle relitive to the map to transparent black, erasing any previously drawn content. */
+    public clearMapRect(rectangle: Rectangle) {
+        let maprect = this.camera.mapToScreenRect(rectangle);
+        this.clearRect(maprect);
+    }
     /** Sets all pixels in the rectangle to transparent black, erasing any previously drawn content. */
     public clearRect(rectangle: Rectangle) {
         this.context.clearRect(rectangle.x, rectangle.y, rectangle.width, rectangle.height);
     }
 
+    /** Draws a filled rectangle relitive to the map with the given styles */
+    public fillMapRect(rectangle: Rectangle, fill?: IFillStyles) {
+        let maprect = this.camera.mapToScreenRect(rectangle);
+        this.fillRect(maprect, fill);
+    }
     /** Draws a filled rectangle with the given styles */
     public fillRect(rectangle: Rectangle, fill?: IFillStyles) {
         this.runWithStyles(() =>
@@ -112,7 +129,11 @@ export default class Canvas {
             { fill }
         );
     }
-
+    /** Paints a rectangle relitive to the map onto the canvas, using the current stroke style. */
+    public strokeMapRect(rectangle: Rectangle, stroke?: IStrokeStyles) {
+        let maprect = this.camera.mapToScreenRect(rectangle);
+        this.strokeRect(maprect, stroke);
+    }
     /** Paints a rectangle onto the canvas, using the current stroke style. */
     public strokeRect(rectangle: Rectangle, stroke?: IStrokeStyles) {
         this.runWithStyles(() =>
@@ -121,6 +142,11 @@ export default class Canvas {
         );
     }
 
+    /** Draws (fills) a given text at the given position on the map. */
+    public fillMapText(string: string, point: Vector2, text?: ITextStyles, fill?: IStrokeStyles) {
+        let mapPoint = this.camera.mapToScreenPos(point);
+        this.fillText(string, mapPoint, text, fill);
+    }
     /** Draws (fills) a given text at the given position. */
     public fillText(string: string, point: Vector2, text?: ITextStyles, fill?: IStrokeStyles) {
         this.runWithStyles(() =>
@@ -129,6 +155,11 @@ export default class Canvas {
         );
     }
 
+    /** Paints a rectangle onto the canvas, using the current stroke style. */
+    public strokeMapText(string: string, point: Vector2, text?: ITextStyles, stroke?: IStrokeStyles) {
+        let mapPoint = this.camera.mapToScreenPos(point);
+        this.strokeText(string, mapPoint, text, stroke);
+    }
     /** Paints a rectangle onto the canvas, using the current stroke style. */
     public strokeText(string: string, point: Vector2, text?: ITextStyles, stroke?: IStrokeStyles) {
         this.runWithStyles(() =>
@@ -140,12 +171,10 @@ export default class Canvas {
     /** Measure a given string with the given styles */
     public measureText(string: string, text?: ITextStyles): number {
         // Measure the text
-        let metrics = this.runWithStyles(() =>
+        return this.runWithStyles(() =>
             this.context.measureText(string),
             { text }
-        );
-
-        return metrics.width;
+        ).width;
     }
 
     // EVENTS
