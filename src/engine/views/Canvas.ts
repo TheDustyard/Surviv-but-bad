@@ -4,14 +4,14 @@ import Shape from "../shape/Shape";
 import Vector2 from "../Vector2";
 import Camera from "./Camera";
 
-interface IStyles {
+export interface IStyles {
     line?: ILineStyles;
     text?: ITextStyles;
     fill?: IFillStyles;
     stroke?: IStrokeStyles;
 }
 
-interface ILineStyles {
+export interface ILineStyles {
     /** Width of lines. Default `1.0` */
     lineWidth?: number;
     /** Type of endings on the end of lines. Possible values: `butt` (default), `round`, `square`. */
@@ -26,8 +26,10 @@ interface ILineStyles {
     lineDashOffset?: number;
 }
 
-interface ITextStyles {
-    /** Font setting. Default value `10px sans-serif.` */
+export interface ITextStyles {
+    /** Font size setting. Default value `10` */
+    fontSize?: number;
+    /** Font setting. Default value `sans-serif` */
     font?: string;
     /** Text alignment setting. Possible values: `start` (default), `end`, `left`, `right` or `center`. */
     textAlign?: "start" | "end" | "left" | "right" | "center";
@@ -38,10 +40,10 @@ interface ITextStyles {
 }
 
 /** Color or style to use inside shapes. Default: `#000` (black). */
-type IFillStyles = string;
+export type IFillStyles = string;
 
 /** Color or style to use for the lines around shapes. Default `#000` (black). */
-type IStrokeStyles = string;
+export type IStrokeStyles = string;
 
 export default class Canvas {
     private readonly canvas: HTMLCanvasElement;
@@ -55,9 +57,17 @@ export default class Canvas {
         text: {}
     };
 
-    constructor(canvas: HTMLCanvasElement, camera: Camera) {
+    public get width() {
+        return this.canvas.width;
+    }
+    public get height() {
+        return this.canvas.height;
+    }
+
+    constructor(canvas: HTMLCanvasElement) {
         this.canvas = canvas;
         this.context = canvas.getContext("2d");
+        this.camera = new Camera(new Rectangle(0, 0, Vector2.zero));
 
         this.initializeScreen();
         window.addEventListener("resize", this.initializeScreen);
@@ -66,6 +76,9 @@ export default class Canvas {
     private readonly initializeScreen = () => {
         this.canvas.width = this.canvas.clientWidth;
         this.canvas.height = this.canvas.clientHeight;
+
+        this.camera.rectangle.width = this.canvas.clientWidth;
+        this.camera.rectangle.height = this.canvas.clientHeight;
 
         console.log(this.canvas.width, this.canvas.height);
     }
@@ -86,7 +99,7 @@ export default class Canvas {
                 this.context.lineDashOffset = styles.line.lineDashOffset !== undefined ? styles.line.lineDashOffset : this.styles.line.lineDashOffset;
             }
             if (styles.text !== undefined) {
-                this.context.font = styles.text.font !== undefined ? styles.text.font : this.styles.text.font;
+                this.context.font = `${styles.text.fontSize !== undefined ? styles.text.fontSize : this.styles.text.fontSize}px ${styles.text.font !== undefined ? styles.text.font : this.styles.text.font}`;
                 this.context.textAlign = styles.text.textAlign !== undefined ? styles.text.textAlign : this.styles.text.textAlign;
                 this.context.textBaseline = styles.text.textBaseline !== undefined ? styles.text.textBaseline : this.styles.text.textBaseline;
                 this.context.direction = styles.text.direction !== undefined ? styles.text.direction : this.styles.text.direction;
@@ -150,7 +163,7 @@ export default class Canvas {
     /** Draws (fills) a given text at the given position. */
     public fillText(string: string, point: Vector2, text?: ITextStyles, fill?: IStrokeStyles) {
         this.runWithStyles(() =>
-            this.context.fillText(string, point.x, point.y),
+            this.context.fillText(string, point.x, point.y + text.fontSize),
             { fill, text }
         );
     }

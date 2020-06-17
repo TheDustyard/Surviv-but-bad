@@ -1,14 +1,21 @@
-import Camera from "./views/Camera";
+import Rectangle from "./shape/Rectangle";
+import Vector2 from "./Vector2";
 import Canvas from "./views/Canvas";
 
 abstract class Game {
-
     protected canvas: Canvas;
-    protected camera: Camera;
 
     constructor() {
-        this.canvas = new Canvas(document.getElementById("game") as HTMLCanvasElement, this.camera);
+        this.canvas = new Canvas(document.getElementById("game") as HTMLCanvasElement);
+    }
 
+    private started = false;
+    public start() {
+        if (this.started) {
+            throw new Error("The game is already running");
+        }
+
+        this.started = true;
         window.requestAnimationFrame(this.loop);
     }
 
@@ -18,7 +25,7 @@ abstract class Game {
     // The game loop
     private readonly loop = () => {
         // CLEAR
-        this.canvas.clearRect();
+        this.canvas.clearRect(new Rectangle(this.canvas.width, this.canvas.height, Vector2.zero));
 
         // DRAW
         if (this.lastDraw === undefined) {
@@ -35,6 +42,8 @@ abstract class Game {
         window.requestAnimationFrame(this.loop);
     }
 
+    /** Initialize the game */
+    public abstract init(deltat: number): void;
     /** Draw the scene */
     public abstract draw(deltat: number): void;
     /** Update the scene */

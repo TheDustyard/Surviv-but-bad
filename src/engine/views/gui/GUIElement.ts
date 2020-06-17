@@ -1,6 +1,5 @@
-import Canvas from "../Canvas";
 import Shape from "../../shape/Shape";
-import Vector2 from "../../Vector2";
+import Canvas from "../Canvas";
 import GUI from "./GUI";
 
 abstract class GUIElement {
@@ -13,6 +12,24 @@ abstract class GUIElement {
 
         gui.canvas.addClickHandler(this.shape, () => this.click());
         gui.canvas.addHoverHandler(this.shape, () => this.hover());
+    }
+
+    public get position() {
+        return this.shape.position;
+    }
+
+    public get x() {
+        return this.position.x;
+    }
+    public set x(value) {
+        this.position.x = value;
+    }
+
+    public get y() {
+        return this.position.y;
+    }
+    public set y(value) {
+        this.position.y = value;
     }
 
     public abstract draw(canvas: Canvas): void;

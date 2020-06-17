@@ -4,6 +4,13 @@ import Vector2 from "../Vector2";
 export default class Camera {
     public rectangle: Rectangle;
 
+    public get width() {
+        return this.rectangle.width;
+    }
+    public get height() {
+        return this.rectangle.height;
+    }
+
     public get position() {
         return this.rectangle.position;
     }
